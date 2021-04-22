@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"paguma/pgiface"
+	"paguma/utils"
 )
 
 type Server struct {
@@ -22,7 +23,8 @@ type Server struct {
 
 
 func (s *Server)Start()  {
-	fmt.Printf("[Start] Server Listener at IP: %s, Port %d, is starting\n", s.IP, s.Port)
+	fmt.Printf("[Paguma] Server Name: %s, listener IP at : %s, Port : %d is starting...\n", utils.GlobalObject.Name, utils.GlobalObject.Host, utils.GlobalObject.TCPPort )
+	fmt.Printf("[Paguma] Version %s, MaxConn: %d, MaxPacketSize: %d\n", utils.GlobalObject.Version, utils.GlobalObject.MaxConn, utils.GlobalObject.MaxPacketSize)
 	go func() {
 		// 1. 获取一个TCP的Addr
 		addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
@@ -37,7 +39,7 @@ func (s *Server)Start()  {
 			return
 		}
 		//已经监听成功
-		fmt.Println("start Paguma server  ", s.Name, " succ, now listenning...")
+		fmt.Println("start Paguma server  ", s.Name, " succeed, now listening...")
 		var cid uint32
 		cid = 0
 		// 3. 阻塞的等待客户端连接，处理客户端连接业务（读写）
@@ -83,10 +85,10 @@ func (s *Server)AddRouter(router pgiface.IRouter) {
 // NewServer 初始化Server模块的方法
 func NewServer(name string) pgiface.IServer {
 	s := &Server{
-		Name:      name,
+		Name:      utils.GlobalObject.Name,
 		IPVersion: "tcp4",
-		IP:        "0.0.0.0",
-		Port:      8999,
+		IP:        utils.GlobalObject.Host,
+		Port:      utils.GlobalObject.TCPPort,
 		Router:    nil,
 	}
 	return s

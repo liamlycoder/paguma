@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"paguma/pgiface"
+	"paguma/utils"
 )
 
 /*
@@ -46,8 +47,8 @@ func (c *Connection)StartReader() {
 	defer c.Stop()
 
 	for {
-		// 读取客户端的数据到buf中，目前最大是512字节
-		buf := make([]byte, 512)
+		// 读取客户端的数据到buf中，其大小由配置文件指定
+		buf := make([]byte, utils.GlobalObject.MaxPacketSize)
 		_, err := c.Conn.Read(buf)
 		if err != nil {
 			fmt.Println("recv buf err: ", err)
