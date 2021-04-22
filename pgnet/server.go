@@ -15,7 +15,11 @@ type Server struct {
 	IP string
 	// 服务器监听的端口
 	Port int
+	// 当前的Server添加一个router, server注册的链接对应的处理业务
+	Router pgiface.IRouter
 }
+
+
 
 func (s *Server)Start()  {
 	fmt.Printf("[Start] Server Listener at IP: %s, Port %d, is starting\n", s.IP, s.Port)
@@ -33,7 +37,9 @@ func (s *Server)Start()  {
 			return
 		}
 		//已经监听成功
-		fmt.Println("start Zinx server  ", s.Name, " succ, now listenning...")
+		fmt.Println("start Paguma server  ", s.Name, " succ, now listenning...")
+		var cid uint32
+		cid = 0
 		// 3. 阻塞的等待客户端连接，处理客户端连接业务（读写）
 		for {
 			//3.1 阻塞等待客户端建立连接请求
@@ -44,23 +50,12 @@ func (s *Server)Start()  {
 			}
 			fmt.Println("Get conn remote addr = ", conn.RemoteAddr().String())
 
-			// 已经与客户端建立连接，做一些业务，做一个最基本的最大512字节长度的回显业务
-			go func() {
-				for {
-					buf := make([]byte, 512)
-					cnt, err := conn.Read(buf)
-					if err != nil {
-						fmt.Println("recv buf err: ", err)
-						continue
-					}
-					fmt.Printf("recv client buf %s, cnt %d\n", buf, cnt)
-					// 回显功能
-					if _, err := conn.Write(buf[:cnt]); err != nil {
-						fmt.Println("write back buf err: ", err)
-						continue
-					}
-				}
-			}()
+			// 当处理新链接的业务方法 和 conn 进行绑定，得到我们的链接模块
+			dealConn := NewConnection(conn, cid, s.Router)
+			cid++
+
+			// 启动当前的业务链接处理
+			go dealConn.Start()
 		}
 	}()
 }
@@ -79,6 +74,12 @@ func (s *Server)Serve()  {
 	select {}
 }
 
+// AddRouter 路由功能：给当前的服务注册一个路由方法，供客户端的链接处理使用
+func (s *Server)AddRouter(router pgiface.IRouter) {
+	s.Router = router
+	fmt.Println("Add router succeed!")
+}
+
 // NewServer 初始化Server模块的方法
 func NewServer(name string) pgiface.IServer {
 	s := &Server{
@@ -86,6 +87,7 @@ func NewServer(name string) pgiface.IServer {
 		IPVersion: "tcp4",
 		IP:        "0.0.0.0",
 		Port:      8999,
+		Router:    nil,
 	}
 	return s
 }
