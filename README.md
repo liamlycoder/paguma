@@ -98,6 +98,16 @@
 **方法：**
 - setter/getter
 
+### 解决粘包问题的封包拆包模块（DataPack)
+**针对Message进行TLV格式的封装**
+- 写Message的长度
+- 写Message的ID
+- 写Message的内容
+
+**针对Message进行TLV格式的拆包**
+- 先读取固定长度的head，得到消息内容长度和消息类型
+- 再根据消息内容的长度，再次进行一次读写，从conn中读取消息的内容
+
 
 
 
