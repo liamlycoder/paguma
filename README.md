@@ -89,6 +89,15 @@
 
 实现思路：创建一个全局配置模块utils/globalobj.go，然后通过一个init方法读取到用户配置好的application.json到global对象中去。将paguma框架中的硬编码部分替换为配置文件里面的参数
 
+## 五、消息模块（Message）
+**属性：**
+- 消息的ID
+- 消息长度
+- 消息的内容
+
+**方法：**
+- setter/getter
+
 
 
 
