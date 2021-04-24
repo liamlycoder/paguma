@@ -127,6 +127,13 @@
 - 将Connection模块中的Router属性替换成MsgHandler属性
 - Connection之前调度Router的业务，替换成MsgHandler调度，修改StartReader方法
 
+## 七、读写协程分离
+读写分离可以使得读业务和写业务模块更加清晰，并且便于在写模块里面添加更多的扩展业务
+- 添加一个Reader和Writer之间通信的channel
+- 添加一个Write goroutine
+- Reader之前是直接发送给客户端，现在改为发送给channel
+- 启动Reader和Writer一同工作
+
 
 
 
