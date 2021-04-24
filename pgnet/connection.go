@@ -25,17 +25,17 @@ type Connection struct {
 	// 告知当前链接已经退出的/停止的 channel
 	ExitChan chan bool
 
-	// 该链接处理的方法Router
-	Router pgiface.IRouter
+	// 消息的管理Msg和对应的API
+	MsgHandler pgiface.IMsgHandler
 }
 
 // NewConnection 初始化链接模块的方法
-func NewConnection(conn *net.TCPConn, connID uint32, router pgiface.IRouter) *Connection {
+func NewConnection(conn *net.TCPConn, connID uint32, msgHandler pgiface.IMsgHandler) *Connection {
 	c := &Connection{
 		Conn:     conn,
 		ConnID:   connID,
 		isClosed: false,
-		Router:   router,
+		MsgHandler: msgHandler,
 		ExitChan: make(chan bool, 1),
 	}
 	return c
@@ -89,11 +89,7 @@ func (c *Connection) StartReader() {
 		}
 
 		// 从路由中找到注册绑定的Conn对应的router调用
-		go func(request pgiface.IRequest) {
-			c.Router.PreHandle(request)
-			c.Router.Handle(request)
-			c.Router.PostHandle(request)
-		}(&req)
+		go c.MsgHandler.DoMsgHandler(&req)
 
 	}
 

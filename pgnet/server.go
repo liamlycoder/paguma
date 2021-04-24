@@ -16,8 +16,8 @@ type Server struct {
 	IP string
 	// 服务器监听的端口
 	Port int
-	// 当前的Server添加一个router, server注册的链接对应的处理业务
-	Router pgiface.IRouter
+	// 当前Server的消息管理模块，用来绑定MsgID和对应处理业务的API
+	MsgHandler pgiface.IMsgHandler
 }
 
 
@@ -53,7 +53,7 @@ func (s *Server)Start()  {
 			fmt.Println("Get conn remote addr = ", conn.RemoteAddr().String())
 
 			// 当处理新链接的业务方法 和 conn 进行绑定，得到我们的链接模块
-			dealConn := NewConnection(conn, cid, s.Router)
+			dealConn := NewConnection(conn, cid, s.MsgHandler)
 			cid++
 
 			// 启动当前的业务链接处理
@@ -77,8 +77,8 @@ func (s *Server)Serve()  {
 }
 
 // AddRouter 路由功能：给当前的服务注册一个路由方法，供客户端的链接处理使用
-func (s *Server)AddRouter(router pgiface.IRouter) {
-	s.Router = router
+func (s *Server)AddRouter(msgID uint32, router pgiface.IRouter) {
+	s.MsgHandler.AddRouter(msgID, router)
 	fmt.Println("Add router succeed!")
 }
 
@@ -89,7 +89,7 @@ func NewServer(name string) pgiface.IServer {
 		IPVersion: "tcp4",
 		IP:        utils.GlobalObject.Host,
 		Port:      utils.GlobalObject.TCPPort,
-		Router:    nil,
+		MsgHandler: NewMsgHandle(),
 	}
 	return s
 }
