@@ -26,6 +26,8 @@ type GlobalObj struct {
 	Version          string //当前Paguma版本号
 	MaxPacketSize    uint32 //都需数据包的最大值
 	MaxConn          int    //当前服务器主机允许的最大链接个数
+	WorkerPoolSize   uint32   // 当前业务工作Worker池的goroutine数量
+	MaxWorkerTaskLen uint32  // 表示框架允许开辟的最大Worker
 }
 
 //GlobalObject 全局对外的GlobalObj
@@ -41,6 +43,8 @@ func init()  {
 		Version:       "v0.7",
 		MaxPacketSize: 4096,
 		MaxConn:       1000,
+		WorkerPoolSize: 10,
+		MaxWorkerTaskLen: 1024,  // 这个需要写死
 	}
 
 	// 尝试从配置文件中加载配置参数
