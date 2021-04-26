@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"paguma/pgiface"
+	"paguma/utils"
 )
 
 /*
@@ -92,8 +93,15 @@ func (c *Connection) StartReader() {
 			msg:  msg,
 		}
 
-		// 从路由中找到注册绑定的Conn对应的router调用
-		go c.MsgHandler.DoMsgHandler(&req)
+		if utils.GlobalObject.WorkerPoolSize > 0 {
+			// 已经开启了工作池机制，将消息发送给worker工作池
+			c.MsgHandler.SendMsgToTaskQueue(&req)
+		} else {
+			// 没有开启工作池，直接按原来的goroutine来处理
+			// 从路由中找到注册绑定的Conn对应的router调用
+			go c.MsgHandler.DoMsgHandler(&req)
+		}
+
 
 	}
 

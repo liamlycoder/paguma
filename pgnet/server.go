@@ -26,6 +26,8 @@ func (s *Server)Start()  {
 	fmt.Printf("[Paguma] Server Name: %s, listener IP at : %s, Port : %d is starting...\n", utils.GlobalObject.Name, utils.GlobalObject.Host, utils.GlobalObject.TCPPort )
 	fmt.Printf("[Paguma] Version %s, MaxConn: %d, MaxPacketSize: %d\n", utils.GlobalObject.Version, utils.GlobalObject.MaxConn, utils.GlobalObject.MaxPacketSize)
 	go func() {
+		// 0. 开启消息队列及工作池
+		s.MsgHandler.StartWorkerPool()
 		// 1. 获取一个TCP的Addr
 		addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
 		if err != nil {
