@@ -1,5 +1,5 @@
 {
-  "Name": "Paguma v0.8 TCP Server",
+  "Name": "Paguma v0.9 TCP Server",
   "Host": "127.0.0.1",
   "TcpPort": 8997,
   "MaxConn": 3,

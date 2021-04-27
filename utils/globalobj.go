@@ -40,7 +40,7 @@ func init()  {
 		Host:          "0.0.0.0",
 		TCPPort:       8999,
 		Name:          "PagumaServer",
-		Version:       "v0.8",
+		Version:       "v0.9",
 		MaxPacketSize: 4096,
 		MaxConn:       1000,
 		WorkerPoolSize: 10,

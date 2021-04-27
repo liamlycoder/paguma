@@ -147,6 +147,17 @@
     - 开启并调用消息队列以及worker工作池
     - 将从客户端处理的消息，发送给当前的worker工作池来处理
 
+## 九、链接管理模块
+- 创建一个链接管理模块
+- 将链接管理模块集成到paguma框架中
+  - 将ConnManager加入到server模块中
+  - 每次成功与客户端建立链接之后，添加链接到ConnManager 
+  - 判断当前链接数量是否超过MaxConn
+  - 每次与客户端断开链接后，将连接从ConnManager中删除
+- 创建链接之后/销毁链接之前所需要处理的一些业务功能补充，提供给用户能够注册Hook函数
+  - 给server添加属性：①该server创建链接之后自动调用的hook函数-OnConnStart()；②该server销毁链接之前自动调用的hook函数OnConnStop()
+  - 给server添加方法：①注册OnConnStart()钩子函数的方法；②注册OnConnStop()钩子函数的方法；③调用OnConnStart()钩子函数的方法；④调用OnConnStop()钩子函数的方法
+    
   
 
 

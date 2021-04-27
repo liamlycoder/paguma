@@ -38,16 +38,33 @@ func (h *HelloRouter)Handle(request pgiface.IRequest)  {
 	}
 }
 
+// 创建链接之后执行的钩子函数
+func begin(conn pgiface.IConnection)  {
+	fmt.Println("===》DO CONNECTION BEGIN...")
+	_ = conn.SendMsg(301, []byte("china telecom is garbage"))
+}
+
+
+// 销毁链接之前执行的钩子函数
+func end(conn pgiface.IConnection)  {
+	fmt.Println("===》DO CONNECTION END...")
+	_ = conn.SendMsg(302, []byte("I must leave china telecom"))
+}
+
 
 func main() {
 	// 1. 创建一个server句柄
-	s := pgnet.NewServer("[paguma v0.5]")
+	s := pgnet.NewServer()
 
-	// 2. 添加一个自定义的router
+	// 2. 注册钩子函数
+	s.SetOnConnStart(begin)
+	s.SetOnConnStop(end)
+
+	// 3. 添加一个自定义的router
 	s.AddRouter(0, &HelloRouter{})
 	s.AddRouter(1, &PingRouter{})
 
-	// 3. 启动服务
+	// 4. 启动服务
 	s.Serve()
 }
 

@@ -14,6 +14,9 @@ import (
 */
 
 type Connection struct {
+	// 当前Conn隶属于哪个server
+	TcpServer pgiface.IServer
+
 	// 当前链接的socket TCP套接字
 	Conn *net.TCPConn
 
@@ -34,8 +37,9 @@ type Connection struct {
 }
 
 // NewConnection 初始化链接模块的方法
-func NewConnection(conn *net.TCPConn, connID uint32, msgHandler pgiface.IMsgHandler) *Connection {
+func NewConnection(server pgiface.IServer, conn *net.TCPConn, connID uint32, msgHandler pgiface.IMsgHandler) *Connection {
 	c := &Connection{
+		TcpServer:  server,
 		Conn:       conn,
 		ConnID:     connID,
 		isClosed:   false,
@@ -43,6 +47,10 @@ func NewConnection(conn *net.TCPConn, connID uint32, msgHandler pgiface.IMsgHand
 		ExitChan:   make(chan bool, 1),
 		msgChan:    make(chan []byte),
 	}
+
+	// 将conn加入到ConnManager中
+	c.TcpServer.GetConnMgr().Add(c)
+
 	return c
 }
 
@@ -50,7 +58,7 @@ func NewConnection(conn *net.TCPConn, connID uint32, msgHandler pgiface.IMsgHand
 func (c *Connection) StartReader() {
 	fmt.Println("【Reader Goroutine is running...】")
 	defer fmt.Println("【Reader is exited】", "connID = ", c.ConnID, ", remote addr is ", c.RemoteAddr().String())
-	defer c.Stop()   // 当读业务出现任何异常，都会调用Stop函数，而Stop函数中可以将Reader退出的消息发送到ExitChan管道上去通知Writer也退出
+	defer c.Stop() // 当读业务出现任何异常，都会调用Stop函数，而Stop函数中可以将Reader退出的消息发送到ExitChan管道上去通知Writer也退出
 
 	for {
 		// 读取客户端的数据到buf中，其大小由配置文件指定
@@ -102,7 +110,6 @@ func (c *Connection) StartReader() {
 			go c.MsgHandler.DoMsgHandler(&req)
 		}
 
-
 	}
 
 }
@@ -110,7 +117,7 @@ func (c *Connection) StartReader() {
 // StartWriter 链接的写业务方法
 func (c *Connection) StartWriter() {
 	fmt.Println("【Writer Goroutine is running...】")
-	defer fmt.Println("【Writer is exited】,", "connID = ", c.ConnID,  "remote addr is ", c.RemoteAddr().String())
+	defer fmt.Println("【Writer is exited】,", "connID = ", c.ConnID, "remote addr is ", c.RemoteAddr().String())
 
 	// 不断的阻塞等待channel的消息，进行写给客户端
 	for {
@@ -137,7 +144,8 @@ func (c *Connection) Start() {
 	go c.StartReader()
 	// 启动当前链接的写数据的业务
 	go c.StartWriter()
-
+	//按照用户传递进来的创建连接时需要处理的业务，执行钩子方法
+	c.TcpServer.CallOnConnStart(c)
 }
 
 // Stop 停止链接，结束当前链接的工作
@@ -150,11 +158,16 @@ func (c *Connection) Stop() {
 
 	c.isClosed = true
 
+	c.TcpServer.CallOnConnStop(c)
+
 	// 关闭socket链接
 	c.Conn.Close()
 
 	// 告知Writer关闭
 	c.ExitChan <- true
+
+	// 将当前链接从ConnMgr中移除
+	c.TcpServer.GetConnMgr().Remove(c)
 
 	// 回收资源
 	close(c.ExitChan)
