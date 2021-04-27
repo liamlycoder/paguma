@@ -158,6 +158,18 @@
   - 给server添加属性：①该server创建链接之后自动调用的hook函数-OnConnStart()；②该server销毁链接之前自动调用的hook函数OnConnStop()
   - 给server添加方法：①注册OnConnStart()钩子函数的方法；②注册OnConnStop()钩子函数的方法；③调用OnConnStart()钩子函数的方法；④调用OnConnStop()钩子函数的方法
     
+
+## 十、链接属性
+给connection模块添加一个可以配置属性的功能
+
+**新增的属性：**
+- 链接属性集合：map
+- 保护链接属性的互斥锁
+
+**新增的方法：**
+- 设置链接属性
+- 获取链接属性
+- 移除链接属性
   
 
 

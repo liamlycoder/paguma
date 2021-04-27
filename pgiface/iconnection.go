@@ -1,26 +1,23 @@
 package pgiface
 
-import "net"
+import (
+	"net"
+)
 
 // IConnection 定义链接模块的抽象层
 type IConnection interface {
-	// Start 启动链接，让当前的链接准备开始工作
-	Start()
+	Start()                   //启动连接，让当前连接开始工作
+	Stop()                    //停止连接，结束当前连接状态M
 
-	// Stop 停止链接，结束当前链接的工作
-	Stop()
+	GetTCPConnection() *net.TCPConn //从当前连接获取原始的socket TCPConn
+	GetConnID() uint32              //获取当前连接ID
+	RemoteAddr() net.Addr           //获取远程客户端地址信息
 
-	// GetTCPConnection 获取当前链接所绑定的socket conn
-	GetTCPConnection() *net.TCPConn
+	SendMsg(msgID uint32, data []byte) error     //直接将Message数据发送数据给远程的TCP客户端(无缓冲)
 
-	// GetConnID 获取当前链接模块的链接ID
-	GetConnID() uint32
-
-	// RemoteAddr 获取远程客户端的TCP状态（IP和端口）
-	RemoteAddr() net.Addr
-
-	// SendMsg Send 发送数据，将数据发送给远程的客户端
-	SendMsg(msgId uint32, data []byte) error
+	SetProperty(key string, value interface{})   //设置链接属性
+	GetProperty(key string) (interface{}, error) //获取链接属性
+	RemoveProperty(key string)                   //移除链接属性
 }
 
 // HandleFunc 定义一个处理链接业务的方法

@@ -7,6 +7,7 @@ import (
 	"net"
 	"paguma/pgiface"
 	"paguma/utils"
+	"sync"
 )
 
 /*
@@ -34,6 +35,12 @@ type Connection struct {
 
 	// 消息的管理Msg和对应的API
 	MsgHandler pgiface.IMsgHandler
+
+	//链接属性
+	property map[string]interface{}
+
+	////保护当前property的锁
+	propertyLock sync.Mutex
 }
 
 // NewConnection 初始化链接模块的方法
@@ -46,6 +53,7 @@ func NewConnection(server pgiface.IServer, conn *net.TCPConn, connID uint32, msg
 		MsgHandler: msgHandler,
 		ExitChan:   make(chan bool, 1),
 		msgChan:    make(chan []byte),
+		property:   make(map[string]interface{}),
 	}
 
 	// 将conn加入到ConnManager中
@@ -61,15 +69,6 @@ func (c *Connection) StartReader() {
 	defer c.Stop() // 当读业务出现任何异常，都会调用Stop函数，而Stop函数中可以将Reader退出的消息发送到ExitChan管道上去通知Writer也退出
 
 	for {
-		// 读取客户端的数据到buf中，其大小由配置文件指定
-		//buf := make([]byte, utils.GlobalObject.MaxPacketSize)
-		//_, err := c.Conn.Read(buf)
-		//if err != nil {
-		//	fmt.Println("recv buf err: ", err)
-		//	continue
-		//}
-		// -------以上代码在拆包功能实现后被废除----------
-
 		// 创建一个拆包、解包的对象
 		dp := NewDataPack()
 		// 读取客户端的Msg Head (二进制流，8字节)
@@ -205,4 +204,35 @@ func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 	c.msgChan <- binaryMsg
 
 	return nil
+}
+
+//SetProperty 设置链接属性
+func (c *Connection) SetProperty(key string, value interface{}) {
+	c.propertyLock.Lock()
+	defer c.propertyLock.Unlock()
+	if c.property == nil {
+		c.property = make(map[string]interface{})
+	}
+
+	c.property[key] = value
+}
+
+//GetProperty 获取链接属性
+func (c *Connection) GetProperty(key string) (interface{}, error) {
+	c.propertyLock.Lock()
+	defer c.propertyLock.Unlock()
+
+	if value, ok := c.property[key]; ok {
+		return value, nil
+	}
+
+	return nil, errors.New("no property found")
+}
+
+//RemoveProperty 移除链接属性
+func (c *Connection) RemoveProperty(key string) {
+	c.propertyLock.Lock()
+	defer c.propertyLock.Unlock()
+
+	delete(c.property, key)
 }

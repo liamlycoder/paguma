@@ -42,6 +42,10 @@ func (h *HelloRouter)Handle(request pgiface.IRequest)  {
 func begin(conn pgiface.IConnection)  {
 	fmt.Println("===》DO CONNECTION BEGIN...")
 	_ = conn.SendMsg(301, []byte("china telecom is garbage"))
+	// 给当前链接设置一些属性
+	fmt.Println("Set connection ...")
+	conn.SetProperty("Name", "Liamcoder")
+	conn.SetProperty("Github", "liamlycoder")
 }
 
 
@@ -49,6 +53,11 @@ func begin(conn pgiface.IConnection)  {
 func end(conn pgiface.IConnection)  {
 	fmt.Println("===》DO CONNECTION END...")
 	_ = conn.SendMsg(302, []byte("I must leave china telecom"))
+	// 获取链接属性
+	name, _ := conn.GetProperty("Name")
+	fmt.Println("Name: ", name)
+	gihub, _ := conn.GetProperty("Github")
+	fmt.Println("Github: ", gihub)
 }
 
 
